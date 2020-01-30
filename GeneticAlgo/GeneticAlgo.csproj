@@ -49,9 +49,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ICrossover.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="DataReader.cs" />
+    <Compile Include="SinglePointCrossover.cs" />
+    <Compile Include="TwoPointCrossover.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
