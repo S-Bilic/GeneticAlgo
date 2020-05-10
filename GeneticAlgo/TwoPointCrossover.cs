@@ -18,6 +18,15 @@ namespace GeneticAlgo
             NewChildren(Parent1, Parent2, out Child1, out Child2);
         }
 
+        public void SetCrossoverPoint(int TotalCoefficienten)
+        {
+            double rng1 = rng.Next(25, 40) * 1.00 / 100;
+            double rng2 = rng.Next(60, 75) * 1.00 / 100;
+            int value1 = (int)Math.Round((1 - rng1) * TotalCoefficienten, 0);
+            int value2 = (int)Math.Round((1 - rng2) * TotalCoefficienten, 0);
+            CrossoverPoints = new Tuple<int, int>(value2, value1);
+        }
+
         public void NewChildren(User Parent1, User Parent2, out User Child1, out User Child2)
         {
             Child1 = new User
@@ -33,22 +42,13 @@ namespace GeneticAlgo
             };
 
             Child1.DNA.AddRange(Parent1.DNA.GetRange(0, CrossoverPoints.Item1));
-            Child1.DNA.AddRange(Parent2.DNA.GetRange(CrossoverPoints.Item1, CrossoverPoints.Item2));
+            Child1.DNA.AddRange(Parent2.DNA.GetRange(CrossoverPoints.Item1, CrossoverPoints.Item2 - CrossoverPoints.Item1));
             Child1.DNA.AddRange(Parent1.DNA.GetRange(CrossoverPoints.Item2, Parent1.DNA.Count - CrossoverPoints.Item2));
 
             Child2.DNA.AddRange(Parent2.DNA.GetRange(0, CrossoverPoints.Item1));
-            Child2.DNA.AddRange(Parent1.DNA.GetRange(CrossoverPoints.Item1, CrossoverPoints.Item2));
+            Child2.DNA.AddRange(Parent1.DNA.GetRange(CrossoverPoints.Item1, CrossoverPoints.Item2 - CrossoverPoints.Item1));
             Child2.DNA.AddRange(Parent2.DNA.GetRange(CrossoverPoints.Item2, Parent2.DNA.Count - CrossoverPoints.Item2));
 
-        }
-
-        public void SetCrossoverPoint(int TotalCoefficienten)
-        {
-            double rng1 = rng.Next(25, 40) * 1.00 / 100;
-            double rng2 = rng.Next(60, 75) * 1.00 / 100;
-            int value1 = (int)Math.Round((1 - rng1) * TotalCoefficienten, 0);
-            int value2 = (int)Math.Round((1 - rng2) * TotalCoefficienten, 0);
-            CrossoverPoints = new Tuple<int, int>(value1, value2);
         }
     }
 }

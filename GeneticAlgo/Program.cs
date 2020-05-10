@@ -31,11 +31,11 @@ namespace GeneticAlgo
             TimesToRun = int.Parse(Console.ReadLine());
             Console.WriteLine("Wat is de boundry waarde?");
             boundry = int.Parse(Console.ReadLine());
-            Console.WriteLine("Hoe groot is de kanse op een mutatie? Tussen de 0,0 en 0,8");
+            Console.WriteLine("Hoe groot is de kanse op een mutatie?");
             mutationChance = double.Parse(Console.ReadLine());
 
             //Pas hier crossover aan
-            Console.WriteLine("Kies een crossover type: ( 1 = SinglePointCrossover, 2 = TwoPointCrossover");
+            Console.WriteLine("Kies een crossover type: ( 1 = SinglePointCrossover, 2 = TwoPointCrossover )");
             input = Console.ReadLine();
 
             switch (input)
@@ -53,6 +53,7 @@ namespace GeneticAlgo
 
             List<Tuple<int, double, User, List<User>, List<double>>> Generations = new List<Tuple<int, double, User, List<User>, List<double>>>();
 
+            // Console output
             var finalGenerations = new List<string>();
 
             for (int i = 0; i < TimesToRun; i++)
@@ -63,7 +64,7 @@ namespace GeneticAlgo
                 // Voor iedere user(klant) bereken SE
                 users.ForEach(x => x.CalculateSE());
 
-                // Beste user
+                // Beste user op basis van SE
                 var populationBest = GetBestUser(users);
 
                 // Als de BestUser SE groter of gelijk is aan de populationBest (user) SE
@@ -73,21 +74,29 @@ namespace GeneticAlgo
                     BestUser = populationBest;
                 }
                 else {
-                    // Best user lost add instead of NOOBIE (slechtste user eruit en beste erin)
+                    // (slechtste user eruit en beste erin) (Elitism)
                     var normal = users.OrderByDescending(x => x.SE).FirstOrDefault();
                     int index = users.IndexOf(normal);
                     users[index] = BestUser;
                 }
+
+                // Bereken SSE
                 SSE = CalculateSSE(users);
 
-                // Bereken fitness
+                // Bereken totalFitness (SSE = Fitness)
+                // Omzetten * som = som 60 (bijv.)
                 var totalFitness = users.Sum(x => SSE - x.SE);
+
                 // Begin kans met 0.00
                 var chance = 0.00;
+
                 // De kans die je hebt van alle personen om naar de volgende generatie meegenomen te worden
+                // => Wordt de kans LowerBoundry + UpperBoundry gegeven aan alle users          
                 foreach (var user in users)
                 {
                     user.LowerBoundry = chance;
+                    // Generation SSE
+                    // Grenswaarden
                     chance += (SSE - user.SE) / totalFitness;
                     user.UpperBoundry = chance;
                 }
@@ -96,12 +105,15 @@ namespace GeneticAlgo
                 var newPopulation = new List<User>();
                 for (int y = 0; y < users.Count; y += 2)
                 {
+                    // De twee nieuwe children
                     var child1 = new User();
                     var child2 = new User();
-                    // Zet twee mensen bij elkaar bij crossover
+                    // Zet twee parents bij elkaar in crossover die gekozen zijn door roulette
                     crossover.Use(GetParentRoulette(users), GetParentRoulette(users), Coefficienten.Count, out child1, out child2);
+                    // Output Children namen
                     child1.Name = "Child :" + i + "-" + y;
                     child2.Name = "Child :" + i + "-" + (y + 1);
+                    // Voeg de children toe aan de nieuwe populatie
                     newPopulation.Add(child1);
                     newPopulation.Add(child2);
                 }
@@ -117,7 +129,9 @@ namespace GeneticAlgo
                 // Add new generation
                 Generations.Add(new Tuple<int, double, User, List<User>, List<double>>(i, SSE, BestUser, users, Coefficienten));
 
+                // newPopulation zijn alle nieuwe childs
                 users = newPopulation;
+                // Bij standaard coeffecienten verandert er 1 value als een mutatie plaats vindt
                 Coefficienten = newCoefficienten;       
             }
 
@@ -131,6 +145,7 @@ namespace GeneticAlgo
             {
                 Console.WriteLine(user);
             }
+            
             Console.ReadLine();
         }
 
@@ -156,6 +171,9 @@ namespace GeneticAlgo
         // Random coefficienten berekening
         public static double GetRandomCoefficient()
         {
+            // rng.NextDouble value = 0,54 (tussen 0 en 1)
+            // Boundry value = 1
+            // -> 0.98 * 2 + -1  = 0,96 (coeffecient)
             return rng.NextDouble() * (boundry - (boundry * -1)) + (boundry * -1);
         }
 
@@ -165,9 +183,11 @@ namespace GeneticAlgo
         public static User GetParentRoulette(List<User> users)
         {
             var percent = rng.NextDouble();
+            // Pak de user waar de percent in het midden ligt tussen de LowerBoundry en UpperBoundry
             return users.FirstOrDefault(x => x.LowerBoundry <= percent && x.UpperBoundry >= percent);
         }
 
+        // Bereken SSE
         public static double CalculateSSE(List<User> users)
         {
             return users.Sum(x => x.SE);
